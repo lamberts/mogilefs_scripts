@@ -1,0 +1,59 @@
+#!/bin/bash
+#
+# mogstored  - Startup script for the MogileFS storage node
+#
+# chkconfig: - 85 15
+# description: MogileFS storage node
+# processname: mogstored
+# config: /etc/mogilefs/mogstored.conf
+# pidfile: /var/run/mogstored.pid
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+# . /lib/lsb/init-functions
+# Path to the apachectl script, server binary, and short-form for messages.
+lockfile=${LOCKFILE-/var/lock/mogstored}
+RETVAL=0
+
+start() {
+         echo -n $"Starting mogstored: "
+         /usr/local/bin/mogstored --config /etc/mogilefs/mogstored.conf --daemon --server=lighttpd > /dev/null
+         RETVAL=$?
+         echo
+         [ $RETVAL = 0 ] && touch ${lockfile}
+         return $RETVAL
+}
+stop() {
+         echo -n $"Stopping mogstored: "
+         killproc lighttpd
+         killproc mogstored
+         RETVAL=$?
+         echo
+         [ $RETVAL = 0 ] && rm -f ${lockfile}
+}
+
+# See how we were called.
+case "$1" in
+   start)
+         start
+         ;;
+   stop)
+         stop
+         ;;
+   status)
+         status mogstored
+         RETVAL=$?
+         ;;
+   restart)
+         stop
+         start
+         ;;
+   reload)
+         reload
+         ;;
+   *)
+         echo $"Usage: mogstored {start|stop|restart|reload|status}"
+         exit 1
+esac
+
+exit $RETVAL
